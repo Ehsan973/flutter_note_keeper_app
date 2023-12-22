@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class NoteDetailScreen extends StatefulWidget {
-  const NoteDetailScreen({super.key});
-
+  const NoteDetailScreen(this.appBarTitle, {super.key});
+  final String appBarTitle;
   @override
   State<NoteDetailScreen> createState() => _NoteDetailScreenState();
 }
@@ -19,9 +19,9 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Edit Note',
-          style: TextStyle(color: Colors.white),
+        title: Text(
+          widget.appBarTitle,
+          style: const TextStyle(color: Colors.white),
         ),
         backgroundColor: Theme.of(context).primaryColor,
         elevation: 0,

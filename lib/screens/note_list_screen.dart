@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:note_keeper_app/screens/note_detail_screen.dart';
 
 class NoteListScreen extends StatelessWidget {
   const NoteListScreen({super.key});
@@ -12,7 +13,9 @@ class NoteListScreen extends StatelessWidget {
       ),
       body: _getNoteListView(),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          navigateToDetailScreen(context, 'Add Note');
+        },
         backgroundColor: Colors.deepPurple,
         shape: const CircleBorder(),
         tooltip: 'Add Note',
@@ -43,10 +46,21 @@ class NoteListScreen extends StatelessWidget {
               Icons.delete,
               color: Colors.grey,
             ),
-            onTap: () {},
+            onTap: () {
+              navigateToDetailScreen(context, 'Edit Note');
+            },
           ),
         );
       },
+    );
+  }
+
+  void navigateToDetailScreen(BuildContext context, String title) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => NoteDetailScreen(title),
+      ),
     );
   }
 }
