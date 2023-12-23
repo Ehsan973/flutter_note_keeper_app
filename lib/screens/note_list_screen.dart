@@ -1,8 +1,28 @@
-import 'package:flutter/material.dart';
-import 'package:note_keeper_app/screens/note_detail_screen.dart';
+import 'dart:ffi';
 
-class NoteListScreen extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:note_keeper_app/data/models/note.dart';
+import 'package:note_keeper_app/screens/note_detail_screen.dart';
+import 'package:note_keeper_app/utils/database_helper.dart';
+
+class NoteListScreen extends StatefulWidget {
   const NoteListScreen({super.key});
+
+  @override
+  State<NoteListScreen> createState() => _NoteListScreenState();
+}
+
+class _NoteListScreenState extends State<NoteListScreen> {
+  DatabaseHelper databaseHelper = DatabaseHelper();
+
+  List<Note>? noteList;
+  int count = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    noteList ??= <Note>[];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,24 +47,61 @@ class NoteListScreen extends StatelessWidget {
     );
   }
 
+  // Delete
+  void _delete(BuildContext context, Note note) async {
+    int result = await databaseHelper.deleteNote(note.id);
+    if (result != 0) {
+      _showSnackBar(context, 'Note Deleted Successfully');
+    }
+  }
+
+  // Returns the priority color
+  Color getPriorityColor(int priority) {
+    switch (priority) {
+      case 1:
+        return Colors.red;
+      case 2:
+        return Colors.yellow;
+      default:
+        return Colors.yellow;
+    }
+  }
+
+  // Return the priority icon
+  Icon getPriorityIcon(int priority) {
+    switch (priority) {
+      case 1:
+        return const Icon(Icons.play_arrow);
+      case 2:
+        return const Icon(Icons.keyboard_arrow_right);
+      default:
+        return const Icon(Icons.keyboard_arrow_right);
+    }
+  }
+
   Widget _getNoteListView() {
     // TextStyle titleStyle = Theme.of(context).textTheme.subhead;
     return ListView.builder(
-      itemCount: 3,
+      itemCount: noteList!.length,
       itemBuilder: (context, index) {
         return Card(
           color: Colors.white,
           elevation: 2,
           child: ListTile(
-            leading: const CircleAvatar(
-              backgroundColor: Colors.yellow,
-              child: Icon(Icons.keyboard_arrow_right),
+            leading: CircleAvatar(
+              backgroundColor: getPriorityColor(noteList![index].priority),
+              child: const Icon(Icons.keyboard_arrow_right),
             ),
-            title: const Text('Dummy Title'),
-            subtitle: const Text('Duddy Date'),
-            trailing: const Icon(
-              Icons.delete,
-              color: Colors.grey,
+            title: Text(noteList![index].title),
+            subtitle: Text(noteList![index].date),
+            trailing: GestureDetector(
+              onTap: () {
+                _delete(context, noteList![index]);
+              },
+              child: const Icon(
+                Icons.delete,
+                color: Colors.grey,
+              ),
             ),
             onTap: () {
               navigateToDetailScreen(context, 'Edit Note');
@@ -62,5 +119,10 @@ class NoteListScreen extends StatelessWidget {
         builder: (context) => NoteDetailScreen(title),
       ),
     );
+  }
+
+  void _showSnackBar(BuildContext context, String message) {
+    final snackBar = SnackBar(content: Text(message));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 }
