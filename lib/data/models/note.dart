@@ -1,5 +1,3 @@
-import 'package:flutter/scheduler.dart';
-
 class Note {
   int? _id;
   String _title;
@@ -11,7 +9,7 @@ class Note {
   Note.withId(this._id, this._title, this._date, this._priority,
       [this._description]);
 
-  int get id => _id ?? -1;
+  int? get id => _id;
 
   String get title => _title;
 

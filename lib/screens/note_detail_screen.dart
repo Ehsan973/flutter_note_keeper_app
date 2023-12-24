@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:note_keeper_app/data/models/note.dart';
+import 'package:note_keeper_app/utils/database_helper.dart';
+import 'package:sqflite/sqflite.dart';
 
 class NoteDetailScreen extends StatefulWidget {
-  const NoteDetailScreen(this.appBarTitle, {super.key});
+  const NoteDetailScreen(this.appBarTitle, {super.key, required this.note});
   final String appBarTitle;
+  final Note note;
   @override
   State<NoteDetailScreen> createState() => _NoteDetailScreenState();
 }
@@ -10,10 +15,19 @@ class NoteDetailScreen extends StatefulWidget {
 class _NoteDetailScreenState extends State<NoteDetailScreen> {
   static final _priorities = ['High', 'Low'];
 
-  String? _selectedUserValue = 'Low';
+  Note? note;
+  DatabaseHelper databaseHelper = DatabaseHelper();
 
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
+
+  @override
+  void initState() {
+    note = widget.note;
+    titleController.text = note!.title;
+    descriptionController.text = note!.description;
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,10 +52,10 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
                     child: Text(dropDownStringItem),
                   );
                 }).toList(),
-                value: _selectedUserValue,
+                value: getPriorityAsString(note!.priority),
                 onChanged: (valueSelectedByUser) {
                   setState(() {
-                    _selectedUserValue = valueSelectedByUser;
+                    updatePriorityAsInt(valueSelectedByUser!);
                   });
                 },
               ),
@@ -52,7 +66,9 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
               child: TextField(
                 controller: titleController,
                 style: const TextStyle(fontSize: 12),
-                onChanged: (value) {},
+                onChanged: (value) {
+                  updateTitle();
+                },
                 decoration: InputDecoration(
                   labelText: 'Title',
                   labelStyle: const TextStyle(),
@@ -67,7 +83,9 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
               child: TextField(
                 controller: descriptionController,
                 style: const TextStyle(fontSize: 12),
-                onChanged: (value) {},
+                onChanged: (value) {
+                  updateDescription();
+                },
                 decoration: InputDecoration(
                   labelText: 'Description',
                   labelStyle: const TextStyle(),
@@ -88,6 +106,7 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
                     child: ElevatedButton(
                       onPressed: () {
                         debugPrint('Save button clicked!');
+                        _save();
                       },
                       child: const Text('Save'),
                     ),
@@ -107,6 +126,68 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void moveToLastScreen() {
+    Navigator.of(context).pop();
+  }
+
+  void updatePriorityAsInt(String value) {
+    switch (value) {
+      case 'High':
+        note!.priority = 1;
+        break;
+      case 'Low':
+        note!.priority = 2;
+        break;
+    }
+  }
+
+  String getPriorityAsString(int value) {
+    switch (value) {
+      case 1:
+        return _priorities[0];
+      case 2:
+        return _priorities[1];
+      default:
+        return _priorities[0];
+    }
+  }
+
+  void updateTitle() {
+    note!.title = titleController.text;
+  }
+
+  void updateDescription() {
+    note!.description = descriptionController.text;
+  }
+
+  void _save() async {
+    moveToLastScreen();
+    note!.date = DateFormat.yMMMd().format(DateTime.now());
+    int result;
+    if (note!.id != null) {
+      result = await databaseHelper.updateNote(note!);
+    } else {
+      result = await databaseHelper.insertNote(note!);
+    }
+
+    if (result != 0) {
+      _showAlertDialog('Status', 'Note Saved Successfully');
+    } else {
+      _showAlertDialog('Status', 'Problem Saving Note');
+    }
+  }
+
+  void _showAlertDialog(String title, String message) {
+    AlertDialog alertDialog = AlertDialog(
+      title: Text(title),
+      content: Text(message),
+    );
+    showDialog(
+      context: context,
+      builder: (_) => alertDialog,
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:note_keeper_app/data/models/note.dart';
 import 'package:note_keeper_app/screens/note_detail_screen.dart';
 import 'package:note_keeper_app/utils/database_helper.dart';
+import 'package:sqflite/sqflite.dart';
 
 class NoteListScreen extends StatefulWidget {
   const NoteListScreen({super.key});
@@ -22,6 +23,7 @@ class _NoteListScreenState extends State<NoteListScreen> {
   void initState() {
     super.initState();
     noteList ??= <Note>[];
+    updateListView();
   }
 
   @override
@@ -34,7 +36,7 @@ class _NoteListScreenState extends State<NoteListScreen> {
       body: _getNoteListView(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          navigateToDetailScreen(context, 'Add Note');
+          navigateToDetailScreen(context, Note('title', 'date', 2), 'Add Note');
         },
         backgroundColor: Colors.deepPurple,
         shape: const CircleBorder(),
@@ -49,9 +51,10 @@ class _NoteListScreenState extends State<NoteListScreen> {
 
   // Delete
   void _delete(BuildContext context, Note note) async {
-    int result = await databaseHelper.deleteNote(note.id);
+    int result = await databaseHelper.deleteNote(note.id!);
     if (result != 0) {
       _showSnackBar(context, 'Note Deleted Successfully');
+      updateListView();
     }
   }
 
@@ -104,7 +107,7 @@ class _NoteListScreenState extends State<NoteListScreen> {
               ),
             ),
             onTap: () {
-              navigateToDetailScreen(context, 'Edit Note');
+              navigateToDetailScreen(context, noteList![index], 'Edit Note');
             },
           ),
         );
@@ -112,11 +115,11 @@ class _NoteListScreenState extends State<NoteListScreen> {
     );
   }
 
-  void navigateToDetailScreen(BuildContext context, String title) {
+  void navigateToDetailScreen(BuildContext context, Note note, String title) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => NoteDetailScreen(title),
+        builder: (context) => NoteDetailScreen(title, note: note),
       ),
     );
   }
@@ -124,5 +127,14 @@ class _NoteListScreenState extends State<NoteListScreen> {
   void _showSnackBar(BuildContext context, String message) {
     final snackBar = SnackBar(content: Text(message));
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  void updateListView() async {
+    final Database db = await databaseHelper.initializeDatabase();
+    List<Note> noteList = await databaseHelper.getNoteList();
+    setState(() {
+      count = noteList.length;
+      this.noteList = noteList;
+    });
   }
 }

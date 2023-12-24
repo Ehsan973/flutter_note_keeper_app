@@ -55,7 +55,7 @@ class DatabaseHelper {
   }
 
   // Insert Operation: Insert a Note object to database
-  Future<int> InsertNote(Note note) async {
+  Future<int> insertNote(Note note) async {
     Database db = await database;
     var result = await db.insert(noteTable, note.toMap());
     return result;
@@ -85,5 +85,14 @@ class DatabaseHelper {
         await db.rawQuery('SELECT COUNT (*) FROM $noteTable');
     var result = Sqflite.firstIntValue(x)!;
     return result;
+  }
+
+  Future<List<Note>> getNoteList() async {
+    var noteMapList = await getNoteMapList();
+    List<Note> noteList = noteMapList
+        .map<Note>((mapObject) => Note.fromMapObject(mapObject))
+        .toList();
+
+    return noteList;
   }
 }
