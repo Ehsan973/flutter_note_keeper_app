@@ -115,13 +115,18 @@ class _NoteListScreenState extends State<NoteListScreen> {
     );
   }
 
-  void navigateToDetailScreen(BuildContext context, Note note, String title) {
-    Navigator.push(
+  void navigateToDetailScreen(
+      BuildContext context, Note note, String title) async {
+    bool result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => NoteDetailScreen(title, note: note),
       ),
     );
+
+    if (result) {
+      updateListView();
+    }
   }
 
   void _showSnackBar(BuildContext context, String message) {

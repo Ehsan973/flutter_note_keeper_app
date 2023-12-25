@@ -39,6 +39,12 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
         ),
         backgroundColor: Theme.of(context).primaryColor,
         elevation: 0,
+        leading: IconButton(
+          onPressed: () {
+            moveToLastScreen();
+          },
+          icon: const Icon(Icons.arrow_back),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
@@ -116,6 +122,7 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
                     child: ElevatedButton(
                       onPressed: () {
                         debugPrint('Delete button clicked!');
+                        _delete();
                       },
                       child: const Text('Delete'),
                     ),
@@ -130,7 +137,7 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
   }
 
   void moveToLastScreen() {
-    Navigator.of(context).pop();
+    Navigator.of(context).pop(true);
   }
 
   void updatePriorityAsInt(String value) {
@@ -177,6 +184,22 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
       _showAlertDialog('Status', 'Note Saved Successfully');
     } else {
       _showAlertDialog('Status', 'Problem Saving Note');
+    }
+  }
+
+  void _delete() async {
+    moveToLastScreen();
+
+    if (note!.id == null) {
+      _showAlertDialog('Status', 'No Note was deleted!');
+      return;
+    }
+
+    int result = await databaseHelper.deleteNote(note!.id!);
+    if (result != 0) {
+      _showAlertDialog('Status', 'Note deleted successfully');
+    } else {
+      _showAlertDialog('Status', 'Error Occured while deleting note');
     }
   }
 
