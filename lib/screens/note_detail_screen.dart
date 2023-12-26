@@ -15,16 +15,18 @@ class NoteDetailScreen extends StatefulWidget {
 class _NoteDetailScreenState extends State<NoteDetailScreen> {
   static final _priorities = ['High', 'Low'];
 
+  final _formKey = GlobalKey<FormState>();
+
   Note? note;
   DatabaseHelper databaseHelper = DatabaseHelper();
 
-  final TextEditingController titleController = TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
 
   @override
   void initState() {
     note = widget.note;
-    titleController.text = note!.title;
+    _titleController.text = note!.title;
     descriptionController.text = note!.description;
     super.initState();
   }
@@ -46,91 +48,108 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
           icon: const Icon(Icons.arrow_back),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-        child: ListView(
-          children: [
-            ListTile(
-              title: DropdownButton(
-                items: _priorities.map((String dropDownStringItem) {
-                  return DropdownMenuItem<String>(
-                    value: dropDownStringItem,
-                    child: Text(dropDownStringItem),
-                  );
-                }).toList(),
-                value: getPriorityAsString(note!.priority),
-                onChanged: (valueSelectedByUser) {
-                  setState(() {
-                    updatePriorityAsInt(valueSelectedByUser!);
-                  });
-                },
+      body: Form(
+        key: _formKey,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+          child: ListView(
+            children: [
+              ListTile(
+                title: DropdownButton(
+                  items: _priorities.map((String dropDownStringItem) {
+                    return DropdownMenuItem<String>(
+                      value: dropDownStringItem,
+                      child: Text(dropDownStringItem),
+                    );
+                  }).toList(),
+                  value: getPriorityAsString(note!.priority),
+                  onChanged: (valueSelectedByUser) {
+                    setState(() {
+                      updatePriorityAsInt(valueSelectedByUser!);
+                    });
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: TextField(
-                controller: titleController,
-                style: const TextStyle(fontSize: 12),
-                onChanged: (value) {
-                  updateTitle();
-                },
-                decoration: InputDecoration(
-                  labelText: 'Title',
-                  labelStyle: const TextStyle(),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: TextFormField(
+                  controller: _titleController,
+                  style: const TextStyle(fontSize: 12),
+                  onChanged: (value) {
+                    updateTitle();
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter some text';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Title',
+                    labelStyle: const TextStyle(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
                   ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              child: TextField(
-                controller: descriptionController,
-                style: const TextStyle(fontSize: 12),
-                onChanged: (value) {
-                  updateDescription();
-                },
-                decoration: InputDecoration(
-                  labelText: 'Description',
-                  labelStyle: const TextStyle(),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                child: TextFormField(
+                  controller: descriptionController,
+                  style: const TextStyle(fontSize: 12),
+                  onChanged: (value) {
+                    updateDescription();
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter some text';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Description',
+                    labelStyle: const TextStyle(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        debugPrint('Save button clicked!');
-                        _save();
-                      },
-                      child: const Text('Save'),
-                    ),
-                  ),
-                  const SizedBox(width: 5),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        debugPrint('Delete button clicked!');
-                        _delete();
-                      },
-                      child: const Text('Delete'),
-                    ),
-                  ),
-                ],
+              const SizedBox(
+                height: 10,
               ),
-            )
-          ],
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          debugPrint('Save button clicked!');
+                          if (_formKey.currentState!.validate()) {
+                            _save();
+                          }
+                        },
+                        child: const Text('Save'),
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          debugPrint('Delete button clicked!');
+                          _delete();
+                        },
+                        child: const Text('Delete'),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -163,7 +182,7 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
   }
 
   void updateTitle() {
-    note!.title = titleController.text;
+    note!.title = _titleController.text;
   }
 
   void updateDescription() {
